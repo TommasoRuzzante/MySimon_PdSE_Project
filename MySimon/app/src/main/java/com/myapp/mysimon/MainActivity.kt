@@ -15,17 +15,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-/*import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable*/
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,9 +37,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-//import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.myapp.mysimon.ui.theme.*
 
 class MainActivity : ComponentActivity() {
@@ -59,15 +65,21 @@ class MainActivity : ComponentActivity() {
         // Set and display the UI content
         setContent {
             MySimonTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    // Insert the floating action button and by default put it in the bottom right corner
+                    floatingActionButton = {
+                        FabNewGame(onButtonClick = {
+                            // The button start the new game activity
+                            val intent = Intent(this, GameActivity::class.java)
+                            startActivity(intent)
+                        })
+                    }
+                ) { innerPadding ->
                     MainScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding),
-                        buttonGameScreen = {
-                            val intent = Intent(this, GameActivity::class.java)
-                            startActivity(intent)
-                        },
                         buttonDetailScreen = {
                             val intent = Intent(this, DetailActivity::class.java)
                             startActivity(intent)
@@ -85,7 +97,7 @@ class MainActivity : ComponentActivity() {
 // Contain the sequences of the previous games and how many times buttons were clicked in each sequence
 // Receive the arrays of the first activity as parameters to display the previous games
 @Composable
-fun MainScreen(modifier: Modifier = Modifier, buttonGameScreen : () -> Unit, buttonDetailScreen : () -> Unit, sequenceList: Array<String>, counterList: IntArray) {
+fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : () -> Unit, sequenceList: Array<String>, counterList: IntArray) {
     // String used on this activity
     val title = stringResource(R.string.game_title)
     val oldGames = stringResource(R.string.old_games)
@@ -164,22 +176,25 @@ fun MainScreen(modifier: Modifier = Modifier, buttonGameScreen : () -> Unit, but
                 }
             }
         }
-
-        // Floating Action Button
-        FloatingActionButton(
-            modifier = Modifier,
-            onClick = buttonGameScreen
-        ) {
-            Text(
-                text = "+",
-                fontSize = 20.sp
-            )
-        }
     }
 }
 
-/*@Preview(showBackground = true)
 @Composable
-fun EndScreenPreview() {
-    MainScreen(Modifier, {}, {})
-}*/
+fun FabNewGame(onButtonClick: () -> Unit) {
+    // String of the button
+    val newGame = stringResource(R.string.new_game)
+
+    // Implementation of the button
+    ExtendedFloatingActionButton(
+        onClick = onButtonClick,
+        icon = { Icon(Icons.Filled.PlayArrow, newGame) },
+        text = { Text(text = newGame) },
+        containerColor = OrangeA400
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MainScreenPreview() {
+    MainScreen(Modifier, {}, Array<String>(0) {""}, IntArray(0))
+}

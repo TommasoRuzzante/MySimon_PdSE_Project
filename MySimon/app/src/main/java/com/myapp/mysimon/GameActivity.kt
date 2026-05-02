@@ -39,6 +39,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.myapp.mysimon.ui.theme.*
 
 class GameActivity : ComponentActivity() {
@@ -110,7 +112,7 @@ fun GameScreen(modifier: Modifier = Modifier, buttonAction : (List<String>, List
     }
 
     // Function used to delete the current game and restart a new one
-    val onDeleteButtonClick: () -> Unit = {
+    val onPauseButtonClick: () -> Unit = {
         // Reset the current game
         gameStarted = false
         t = newSequence
@@ -168,13 +170,13 @@ fun GameScreen(modifier: Modifier = Modifier, buttonAction : (List<String>, List
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f),
-                    onButtonClick = {}
+                    onButtonClick = {t = "palle"}
                 )
                 PauseButton(
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f),
-                    onButtonClick = onDeleteButtonClick
+                    onButtonClick = onPauseButtonClick
                 )
                 EndgameButton(
                     modifier = Modifier
@@ -227,7 +229,7 @@ fun GameScreen(modifier: Modifier = Modifier, buttonAction : (List<String>, List
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f),
-                    onButtonClick = onDeleteButtonClick
+                    onButtonClick = onPauseButtonClick
                 )
 
                 EndgameButton(
@@ -316,6 +318,7 @@ fun SequenceText(modifier: Modifier = Modifier, sequence: String) {
 //
 @Composable
 fun StartButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
+    // String of the button
     val start = stringResource(R.string.new_game)
 
     Button(
@@ -331,7 +334,7 @@ fun StartButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
     }
 }
 
-// Composable function that define the menu button Delete
+// Composable function that define the menu button Pause
 // In the parameters is passed the function called when the button is clicked
 @Composable
 fun PauseButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
@@ -375,6 +378,6 @@ fun EndgameButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
 
 @Preview(showBackground = true)
 @Composable
-fun MainScreenPreview() {
+fun GameScreenPreview() {
     GameScreen( buttonAction = { _, _ -> } )
 }

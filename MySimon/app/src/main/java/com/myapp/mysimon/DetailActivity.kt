@@ -31,6 +31,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.myapp.mysimon.ui.theme.*
 
 class DetailActivity : ComponentActivity() {
@@ -77,6 +79,8 @@ fun DetailScreen(modifier: Modifier = Modifier) {
         )
 
         // Number of current clicks in this game
+
+        // Sequence of this game
     }
 }
 

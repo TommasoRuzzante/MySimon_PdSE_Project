@@ -3,7 +3,7 @@
     <string name="app_name">MySimon</string>
     <string name="old_games">Vecchie Partite</string>
     <string name="new_game">Nuova Partita</string>
-    <string name="pause">Pause</string>
+    <string name="pause">Pausa</string>
     <string name="endgame">Fine Partita</string>
     <string name="new_sequence">Inizia Nuova Partita</string>
     <string name="game_details">Dettagli della Partita</string>
