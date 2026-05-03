@@ -40,8 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import com.myapp.mysimon.data.*
 import com.myapp.mysimon.ui.theme.*
 
 class MainActivity : ComponentActivity() {
@@ -51,16 +50,9 @@ class MainActivity : ComponentActivity() {
         // Enable edge-to-edge display on API level < 35
         enableEdgeToEdge()
 
-        // Get the arrays from the first activity to use them in the current activity
-        val sequenceList = intent.getStringArrayExtra("sequenceList") ?: Array(0) {""}
-        val counterList = intent.getIntArrayExtra("counterList") ?: IntArray(0)
-
-        // Check if the arrays have the same size, and close the activity if not
-        if (sequenceList.size != counterList.size) {
-            Log.e("EndScreen", "Data mismatch: sequenceList size ${sequenceList.size} does not match counterList size ${counterList.size}")
-            this.finish()
-            return
-        }
+        // Get the database instance and the data access object
+        val db = AppDatabase.getDatabase(this)
+        val gameDao = db.gameDao()
 
         // Set and display the UI content
         setContent {
@@ -84,8 +76,7 @@ class MainActivity : ComponentActivity() {
                             val intent = Intent(this, DetailActivity::class.java)
                             startActivity(intent)
                         },
-                        sequenceList = sequenceList,
-                        counterList = counterList
+                        games = gameDao.getAll()
                     )
                 }
             }
@@ -97,7 +88,7 @@ class MainActivity : ComponentActivity() {
 // Contain the sequences of the previous games and how many times buttons were clicked in each sequence
 // Receive the arrays of the first activity as parameters to display the previous games
 @Composable
-fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : () -> Unit, sequenceList: Array<String>, counterList: IntArray) {
+fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : () -> Unit, games: List<Game>) {
     // String used on this activity
     val title = stringResource(R.string.game_title)
     val oldGames = stringResource(R.string.old_games)
@@ -144,7 +135,7 @@ fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : () -> Unit, s
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Every game is inserted into a row, containing the number of clicks and the text of the sequence
-            items(sequenceList.size) { index ->
+            items(games.size) { index ->
                 Row(
                     modifier = Modifier
                         .clickable(onClick = { buttonDetailScreen() })
@@ -155,7 +146,7 @@ fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : () -> Unit, s
                     // Number of buttons pressed in that sequence
                     // The font make the number a little more bigger than the font of the sequence,
                     Text(
-                        text = counterList[index].toString(),
+                        text = games[index].counter.toString(),
                         modifier = Modifier.weight(1f),
                         color = Color.Black,
                         fontSize = 20.sp,
@@ -165,7 +156,7 @@ fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : () -> Unit, s
                     // Sequence of that game
                     // The sequence is cut to 4 lines to fit the screen
                     Text(
-                        text = sequenceList[index],
+                        text = games[index].sequence,
                         modifier = Modifier.weight(9f),
                         color = Color.Black,
                         fontSize = 18.sp,
@@ -196,5 +187,5 @@ fun FabNewGame(onButtonClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    MainScreen(Modifier, {}, Array<String>(0) {""}, IntArray(0))
+    MainScreen(Modifier, {}, emptyList())
 }

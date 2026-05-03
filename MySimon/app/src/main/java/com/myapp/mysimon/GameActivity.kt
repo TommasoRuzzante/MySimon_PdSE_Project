@@ -39,8 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import com.myapp.mysimon.data.*
 import com.myapp.mysimon.ui.theme.*
 
 class GameActivity : ComponentActivity() {
@@ -49,6 +48,10 @@ class GameActivity : ComponentActivity() {
 
         // Enable edge-to-edge display on API level < 35
         enableEdgeToEdge()
+
+        // Get the database instance and the data access object
+        val db = AppDatabase.getDatabase(this)
+        val gameDao = db.gameDao()
 
         // Set and display the UI content
         setContent {
