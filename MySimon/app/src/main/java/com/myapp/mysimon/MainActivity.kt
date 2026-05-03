@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,7 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
@@ -72,8 +71,10 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding),
-                        buttonDetailScreen = {
-                            val intent = Intent(this, DetailActivity::class.java)
+                        buttonDetailScreen = { game ->
+                            val intent = Intent(this, DetailActivity::class.java).apply {
+                                putExtra("gameID", game.id) // Pass the game to the detail activity by the id
+                            }
                             startActivity(intent)
                         },
                         games = gameDao.getAll()
@@ -88,7 +89,7 @@ class MainActivity : ComponentActivity() {
 // Contain the sequences of the previous games and how many times buttons were clicked in each sequence
 // Receive the arrays of the first activity as parameters to display the previous games
 @Composable
-fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : () -> Unit, games: List<Game>) {
+fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : (game: Game) -> Unit, games: List<Game>) {
     // String used on this activity
     val title = stringResource(R.string.game_title)
     val oldGames = stringResource(R.string.old_games)
@@ -138,7 +139,7 @@ fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : () -> Unit, g
             items(games.size) { index ->
                 Row(
                     modifier = Modifier
-                        .clickable(onClick = { buttonDetailScreen() })
+                        .clickable(onClick = { buttonDetailScreen(games[index]) })
                         .fillMaxWidth()
                         .background(color = LightBlueGrey50, shape = RoundedCornerShape(4.dp)),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -187,5 +188,8 @@ fun FabNewGame(onButtonClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    MainScreen(Modifier, {}, emptyList())
+    MainScreen(Modifier, {}, listOf(
+        Game(counter = 4, sequence = "A, B, C, D"),
+        Game(counter = 3, sequence = "X, Y, Z")
+    ))
 }

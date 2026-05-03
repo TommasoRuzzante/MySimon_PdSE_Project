@@ -10,4 +10,7 @@ interface GameDao {
 
     @Query("SELECT * FROM game")
     fun getAll() : List<Game>
+
+    @Query("SELECT * FROM game WHERE id = :id")
+    fun selectById(id: Int) : Game
 }

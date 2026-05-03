@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,6 +48,9 @@ class DetailActivity : ComponentActivity() {
         val db = AppDatabase.getDatabase(this)
         val gameDao = db.gameDao()
 
+        // Get the id of the game from the intent
+        val id = intent.getIntExtra("gameID", 0)
+
         // Set and display the UI content
         setContent {
             MySimonTheme {
@@ -52,7 +58,8 @@ class DetailActivity : ComponentActivity() {
                     DetailScreen(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(innerPadding)
+                            .padding(innerPadding),
+                        game = gameDao.selectById(id)
                     )
                 }
             }
@@ -61,9 +68,11 @@ class DetailActivity : ComponentActivity() {
 }
 
 @Composable
-fun DetailScreen(modifier: Modifier = Modifier) {
+fun DetailScreen(modifier: Modifier = Modifier, game: Game) {
+    // String used on this activity
     val details = stringResource(R.string.game_details)
 
+    // The layout of the endgame activity is contained in a column in portrait and landscape too
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -76,19 +85,38 @@ fun DetailScreen(modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 .padding(16.dp),
             color = if (isSystemInDarkTheme()) OrangeA400 else Color.Black,
-            fontSize = 20.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center
         )
 
         // Number of current clicks in this game
+        Text(
+            text = game.counter.toString(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
 
         // Sequence of this game
+        Text(
+            text = game.sequence,
+            modifier = Modifier
+                .scrollable(rememberScrollState(), Orientation.Vertical)
+                .fillMaxWidth()
+                .padding(8.dp),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DetailScreenPreview() {
-    DetailScreen()
+    DetailScreen(Modifier, Game(counter = 42, sequence = "A, B, C, D"))
 }

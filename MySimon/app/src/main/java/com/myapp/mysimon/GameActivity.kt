@@ -61,16 +61,12 @@ class GameActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding),
-                        buttonAction = { sequenceList, counterList ->
-                            // The argument passed lists are converted into arrays to be passed to the second activity
-                            val sequenceListArray = sequenceList.toTypedArray()
-                            val counterListArray = counterList.toIntArray()
-                            val intent = Intent(this, MainActivity::class.java).apply {
-                                putExtra("sequenceList", sequenceListArray)
-                                putExtra("counterList", counterListArray)
-                            }
-                            // Start of the second activity
-                            startActivity(intent)
+                        buttonAction = { counter, sequence ->
+                            // The argument passed values are inserted into the database
+                            gameDao.insert(Game(counter = counter, sequence = sequence))
+
+                            // Close the activity and return to the first activity
+                            this.finish()
                         }
                     )
                 }
@@ -82,7 +78,7 @@ class GameActivity : ComponentActivity() {
 // Function of the first screen of the app
 // Contains colored buttons, current sequence, delete button and end-game button
 @Composable
-fun GameScreen(modifier: Modifier = Modifier, buttonAction : (List<String>, List<Int>) -> Unit) {
+fun GameScreen(modifier: Modifier = Modifier, buttonAction : (Int, String) -> Unit) {
     // Orientation of the device
     val orientation = LocalConfiguration.current.orientation
 
@@ -95,10 +91,6 @@ fun GameScreen(modifier: Modifier = Modifier, buttonAction : (List<String>, List
 
     // Value used to count the actual clicks on buttons
     var count by rememberSaveable { mutableIntStateOf(0) }
-
-    // Lists of the previous games in the current session
-    var sequenceList by rememberSaveable {mutableStateOf(listOf<String>())}
-    var counterList by rememberSaveable {mutableStateOf(listOf<Int>())}
 
     // Function used to add the letter of the clicked button to the sequence
     val onColoredButtonCLick: (String) -> Unit = { color->
@@ -128,15 +120,12 @@ fun GameScreen(modifier: Modifier = Modifier, buttonAction : (List<String>, List
         if (!gameStarted) {
             t = ""
         }
-        // Insert the string and the counter in the lists
-        sequenceList += t
-        counterList += count
         // Reset the game
         gameStarted = false
         t = newSequence
         count = 0
-        // Pass the lists to the second activity
-        buttonAction(sequenceList, counterList)
+        // Insert the values in the database and return to the first activity
+        buttonAction(count, t)
     }
 
     // Layout of the game activity
@@ -206,7 +195,6 @@ fun GameScreen(modifier: Modifier = Modifier, buttonAction : (List<String>, List
             )
 
             // On the right there are the rest of the items, everyone in the same column, covering the other half of the screen
-            //
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -221,20 +209,19 @@ fun GameScreen(modifier: Modifier = Modifier, buttonAction : (List<String>, List
                     sequence = t
                 )
 
+                // Under the sequence there are the three button
                 StartButton(
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f),
                     onButtonClick = {}
                 )
-
                 PauseButton(
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f),
                     onButtonClick = onPauseButtonClick
                 )
-
                 EndgameButton(
                     modifier = Modifier
                         .fillMaxHeight()
@@ -318,12 +305,14 @@ fun SequenceText(modifier: Modifier = Modifier, sequence: String) {
     )
 }
 
-//
+// Composable function that define the button Start, used to start a new game
+// In the parameters is passed the function called when the button is clicked
 @Composable
 fun StartButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
     // String of the button
     val start = stringResource(R.string.new_game)
 
+    // Button to start a new game
     Button(
         modifier = modifier
             .padding(8.dp),
@@ -337,14 +326,14 @@ fun StartButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
     }
 }
 
-// Composable function that define the menu button Pause
+// Composable function that define the button Pause, used to pause the sequence the app is generating
 // In the parameters is passed the function called when the button is clicked
 @Composable
 fun PauseButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
     // String of the button
     val pause = stringResource(R.string.pause)
 
-    // Button to delete the current game
+    // Button to pause the current game
     Button(
         modifier = modifier
             .padding(8.dp),
@@ -358,7 +347,7 @@ fun PauseButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
     }
 }
 
-// Composable function that define the menu button End Game
+// Composable function that define the button End Game, used to end the current game
 // In the parameters is passed the function called when the button is clicked
 @Composable
 fun EndgameButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
