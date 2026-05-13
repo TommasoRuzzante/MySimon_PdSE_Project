@@ -13,5 +13,8 @@ data class Game(
     val counter: Int,
 
     @ColumnInfo(name = "sequence")
-    val sequence: String
+    val sequence: String,
+
+    @ColumnInfo(name = "error_index")
+    val error: Int
 )

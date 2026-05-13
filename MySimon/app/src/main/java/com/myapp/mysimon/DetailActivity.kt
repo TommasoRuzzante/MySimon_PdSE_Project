@@ -31,6 +31,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,8 +46,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 
 class DetailActivity : ComponentActivity() {
-
-    private val mTag = this.javaClass.simpleName
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,9 +123,26 @@ fun DetailScreen(modifier: Modifier = Modifier, game: Game) {
             textAlign = TextAlign.Center
         )
 
-        // Sequence of this game
+        // Sequence of this game divided in green part and red part
+        val resultString = buildAnnotatedString {
+            append(game.sequence)
+            // Add the green color to the correct part
+            addStyle(
+                style = SpanStyle(Color.Green),
+                start = 0,
+                end = 3*(game.error - 1)
+            )
+            // Add the red color to the wrong part
+            addStyle(
+                style = SpanStyle(Color.Red),
+                start = 3*(game.error - 1),
+                end = game.sequence.length
+            )
+        }
+
+        // Print the sequence of this game
         Text(
-            text = game.sequence,
+            text = resultString,
             modifier = Modifier
                 .scrollable(rememberScrollState(), Orientation.Vertical)
                 .fillMaxWidth()
@@ -140,5 +157,5 @@ fun DetailScreen(modifier: Modifier = Modifier, game: Game) {
 @Preview(showBackground = true)
 @Composable
 fun DetailScreenPreview() {
-    DetailScreen(Modifier, Game(counter = 42, sequence = "A, B, C, D"))
+    DetailScreen(Modifier, Game(counter = 8, sequence = "R, G, B, Y, M, R, B, B", error = 6))
 }

@@ -134,7 +134,7 @@ fun GameScreen(modifier: Modifier = Modifier, buttonAction : (Game) -> Unit) {
             t = ""
         }
         // Crete the game that has to be inserted in the database
-        val game = Game(counter = count, sequence = t)
+        val game = Game(counter = count, sequence = t, error = 0)
         // Reset the game
         gameStarted = false
         t = newSequence

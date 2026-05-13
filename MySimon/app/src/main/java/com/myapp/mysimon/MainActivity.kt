@@ -33,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -160,10 +162,27 @@ fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : (game: Game) 
                         fontWeight = FontWeight.Bold
                     )
 
+                    // Sequence of that game divided in green part and red part
+                    val resultString = buildAnnotatedString {
+                        append(games[index].sequence)
+                        // Add the green color to the correct part
+                        addStyle(
+                            style = SpanStyle(Color.Green),
+                            start = 0,
+                            end = 3*(games[index].error - 1)
+                        )
+                        // Add the red color to the wrong part
+                        addStyle(
+                            style = SpanStyle(Color.Red),
+                            start = 3*(games[index].error - 1),
+                            end = games[index].sequence.length
+                        )
+                    }
+
                     // Sequence of that game
                     // The sequence is cut to 4 lines to fit the screen
                     Text(
-                        text = games[index].sequence,
+                        text = resultString,
                         modifier = Modifier.weight(9f),
                         color = Color.Black,
                         fontSize = 18.sp,
@@ -195,7 +214,7 @@ fun FabNewGame(onButtonClick: () -> Unit) {
 @Composable
 fun MainScreenPreview() {
     MainScreen(Modifier, {}, listOf(
-        Game(counter = 4, sequence = "A, B, C, D"),
-        Game(counter = 3, sequence = "X, Y, Z")
+        Game(counter = 4, sequence = "A, B, C, D", error = 4),
+        Game(counter = 3, sequence = "X, Y, Z", error = 2)
     ))
 }
