@@ -2,7 +2,6 @@ package com.myapp.mysimon
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.myapp.mysimon.data.AppDatabase
 import com.myapp.mysimon.data.Game

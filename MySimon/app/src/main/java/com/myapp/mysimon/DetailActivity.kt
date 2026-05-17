@@ -1,23 +1,17 @@
 package com.myapp.mysimon
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +19,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -38,12 +31,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.lifecycleScope
 import com.myapp.mysimon.data.*
 import com.myapp.mysimon.ui.theme.*
 
 class DetailActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -120,36 +111,54 @@ fun DetailScreen(modifier: Modifier = Modifier, game: Game) {
             textAlign = TextAlign.Center
         )
 
-        // Sequence of this game divided in green part and red part
-        val errorSplitIndex = (3 * (game.error - 1)).coerceIn(0, game.sequence.length)
-        val resultString = buildAnnotatedString {
-            append(game.sequence)
-            // Add the green color to the correct part
-            addStyle(
-                style = SpanStyle(Color.Green),
-                start = 0,
-                end = errorSplitIndex
-            )
-            // Add the red color to the wrong part
-            addStyle(
-                style = SpanStyle(Color.Red),
-                start = errorSplitIndex,
-                end = game.sequence.length
-            )
-        }
-
-        // Print the sequence of this game
-        Text(
-            text = resultString,
+        DetailedSequence(
             modifier = Modifier
-                .scrollable(rememberScrollState(), Orientation.Vertical)
                 .fillMaxWidth()
                 .padding(8.dp),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
+            sequence = game.sequence,
+            error = game.error
         )
     }
+}
+
+// Composable function that define the text view of the screen
+@Composable
+fun DetailedSequence(
+    modifier: Modifier = Modifier,
+    sequence: String,
+    error: Int
+) {
+    // Sequence of this game divided in green part and red part
+    val errorSplitIndex = (3 * (error - 1)).coerceIn(0, sequence.length)
+    val resultString = buildAnnotatedString {
+        append(sequence)
+        // Add the green color to the correct part
+        addStyle(
+            style = SpanStyle(Color.Green),
+            start = 0,
+            end = errorSplitIndex
+        )
+        // Add the red color to the wrong part
+        addStyle(
+            style = SpanStyle(Color.Red),
+            start = errorSplitIndex,
+            end = sequence.length
+        )
+    }
+
+    // Value used to make the sequence scrollable and not expandable
+    val scrollState = rememberScrollState()
+
+    // Print the sequence of this game
+    Text(
+        text = resultString,
+        modifier = modifier
+            .verticalScroll(scrollState)
+            .fillMaxSize(),
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Medium,
+        textAlign = TextAlign.Center
+    )
 }
 
 @Preview(showBackground = true)

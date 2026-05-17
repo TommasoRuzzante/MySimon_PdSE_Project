@@ -26,9 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -134,69 +131,18 @@ fun MainScreen(modifier: Modifier = Modifier, buttonDetailScreen : (game: Game) 
             textAlign = TextAlign.Center
         )
 
-        // Under the text, covering the rest of the screen, there is a lazy column
-        // The lazy column contains the sequences and it's scrollable
-        LazyColumn(
+        // Under the text, covering the rest of the screen, there is the column containing the sequences of previous games
+        PreviousGames(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Every game is inserted into a row, containing the number of clicks and the text of the sequence
-            items(games.size) { index ->
-                Row(
-                    modifier = Modifier
-                        .clickable(onClick = { buttonDetailScreen(games[index]) })
-                        .fillMaxWidth()
-                        .background(color = LightBlueGrey50, shape = RoundedCornerShape(4.dp)),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Number of buttons pressed in that sequence
-                    // The font make the number a little more bigger than the font of the sequence,
-                    Text(
-                        text = games[index].counter.toString(),
-                        modifier = Modifier.weight(1f),
-                        color = Color.Black,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    // Sequence of that game divided in green part and red part
-                    val errorSplitIndex = (3 * (games[index].error - 1)).coerceIn(0, games[index].sequence.length)
-                    val resultString = buildAnnotatedString {
-                        append(games[index].sequence)
-                        // Add the green color to the correct part
-                        addStyle(
-                            style = SpanStyle(Color.Green),
-                            start = 0,
-                            end = errorSplitIndex
-                        )
-                        // Add the red color to the wrong part
-                        addStyle(
-                            style = SpanStyle(Color.Red),
-                            start = errorSplitIndex,
-                            end = games[index].sequence.length
-                        )
-                    }
-
-                    // Sequence of that game
-                    // The sequence is cut to 4 lines to fit the screen
-                    Text(
-                        text = resultString,
-                        modifier = Modifier.weight(9f),
-                        color = Color.Black,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 4
-                    )
-                }
-            }
-        }
+            buttonDetailScreen = buttonDetailScreen,
+            games = games
+        )
     }
 }
 
+// Composable function that define the floating action button used to pass to the game activity
 @Composable
 fun FabNewGame(onButtonClick: () -> Unit) {
     // String of the button
@@ -209,6 +155,72 @@ fun FabNewGame(onButtonClick: () -> Unit) {
         text = { Text(text = newGame) },
         containerColor = OrangeA400
     )
+}
+
+// Composable function used to display the sequences of the previous games
+@Composable
+fun PreviousGames(
+    modifier: Modifier = Modifier,
+    buttonDetailScreen: (game: Game) -> Unit,
+    games: List<Game>
+) {
+    // The lazy column contains every sequence and it's scrollable
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Every game is inserted into a row, containing the number of clicks and the text of the sequence
+        items(games.size) { index ->
+            Row(
+                modifier = Modifier
+                    .clickable(onClick = { buttonDetailScreen(games[index]) })
+                    .fillMaxWidth()
+                    .background(color = LightBlueGrey50, shape = RoundedCornerShape(4.dp)),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Number of buttons pressed in that sequence
+                // The font make the number a little more bigger than the font of the sequence,
+                Text(
+                    text = games[index].counter.toString(),
+                    modifier = Modifier.weight(1f),
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                // Sequence of that game divided in green part and red part
+                val errorSplitIndex = (3 * (games[index].error - 1)).coerceIn(0, games[index].sequence.length)
+                val resultString = buildAnnotatedString {
+                    append(games[index].sequence)
+                    // Add the green color to the correct part
+                    addStyle(
+                        style = SpanStyle(Color.Green),
+                        start = 0,
+                        end = errorSplitIndex
+                    )
+                    // Add the red color to the wrong part
+                    addStyle(
+                        style = SpanStyle(Color.Red),
+                        start = errorSplitIndex,
+                        end = games[index].sequence.length
+                    )
+                }
+
+                // Sequence of that game
+                // The sequence is cut to 4 lines to fit the screen
+                Text(
+                    text = resultString,
+                    modifier = Modifier.weight(9f),
+                    color = Color.Black,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 4
+                )
+            }
+        }
+    }
 }
 
 @Preview(showBackground = true)
