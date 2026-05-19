@@ -29,4 +29,10 @@ class SimonGame {
             return s
         }
     }
+
+    // Reset to empty/0 the values of this game
+    fun reset() {
+        sequence.clear()
+        count = 0
+    }
 }

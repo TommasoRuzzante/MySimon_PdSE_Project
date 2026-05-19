@@ -7,6 +7,7 @@ import com.myapp.mysimon.data.AppDatabase
 import com.myapp.mysimon.data.Game
 import com.myapp.mysimon.data.GameRepository
 import com.myapp.mysimon.model.SimonGame
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,16 +36,21 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     // Last button pressed by the user
     private var userIndex = 0
 
-    // Initializing the observable state of the game
+    // Observable state of the game
     private val _gameState = MutableStateFlow(GameState.STARTING)
     val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
-    // Initializing the observable state of the sequence
+    // Sequence of the game initialized as a state
     private val _sequenceString = MutableStateFlow("")
     val sequenceString: StateFlow<String> = _sequenceString.asStateFlow()
 
+    // Tracks which button should be highlighted (-1 means none)
+    private val _activeButtonIndex = MutableStateFlow(-1)
+    val activeButtonIndex: StateFlow<Int> = _activeButtonIndex.asStateFlow()
+
     // Function to start a new game
     fun startNewGame() {
+        simonGame.reset() // Make sure the game is cleared
         userIndex = 0
         _gameState.value = GameState.CPU_TURN
         addNewColor()
@@ -52,15 +58,26 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     // Function that generate a new color and add it to the sequence
     fun addNewColor() {
-        _gameState.value = GameState.CPU_TURN
+        viewModelScope.launch {
+            // Set the state to CPU_TURN
+            _gameState.value = GameState.CPU_TURN
 
-        // Generate an int between 0 and 5 and add it to the sequence
-        val nextColor = Random.nextInt(0, 6)
-        simonGame.increment(nextColor)
-        _sequenceString.value = simonGame.getSequenceString()
+            // Generate an int between 0 and 5 and add it to the sequence
+            val nextColor = Random.nextInt(0, 6)
+            simonGame.increment(nextColor)
+            _sequenceString.value = simonGame.getSequenceString()
 
-        // Pass the game state to the user
-        _gameState.value = GameState.USER_TURN
+            // Show the sequence: every button is illuminated for 800ms and there's a gap of 200ms between buttons
+            for (colorIndex in simonGame.sequence) {
+                _activeButtonIndex.value = colorIndex
+                delay(800)
+                _activeButtonIndex.value = -1
+                delay(200)
+            }
+
+            // Pass the game state to the user
+            _gameState.value = GameState.USER_TURN
+        }
     }
 
     // Function that handle the user click, the parameter is the index of the button pressed
@@ -68,20 +85,28 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         // Check if it's the user turn
         if (_gameState.value != GameState.USER_TURN) return
 
-        // Check if the user press the right button
-        val rightColor = simonGame.sequence[userIndex]
-        if (rightColor == btn) {
-            // The user has guess the right color so we increment his counter
-            userIndex++
+        viewModelScope.launch {
+            // Visual feedback for user click
+            _activeButtonIndex.value = btn
+            delay(200)
+            _activeButtonIndex.value = -1
 
-            // Check if the user has completed this round's sequence
-            if (userIndex == simonGame.count) {
-                userIndex = 0
-                addNewColor()
+            // Check if the user press the right button
+            val rightColor = simonGame.sequence[userIndex]
+            if (rightColor == btn) {
+                // The user has guess the right color so we increment his counter
+                userIndex++
+
+                // Check if the user has completed this round's sequence
+                if (userIndex == simonGame.count) {
+                    userIndex = 0
+                    delay(500)
+                    addNewColor()
+                }
+            } else {
+                // The user has guess the wrong button, so the game end
+                gameOver()
             }
-        } else {
-            // The user has guess the wrong button, so the game end
-            gameOver()
         }
     }
 

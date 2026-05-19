@@ -25,9 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -62,6 +59,7 @@ class GameActivity : ComponentActivity() {
             // Collect the actual state of the game
             val gameState by gameViewModel.gameState.collectAsState()
             val text by gameViewModel.sequenceString.collectAsState()
+            val activeButtonIndex by gameViewModel.activeButtonIndex.collectAsState()
 
             MySimonTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -71,8 +69,9 @@ class GameActivity : ComponentActivity() {
                             .padding(innerPadding),
                         gameState = gameState,
                         text = text,
-                        onColoredButtonClick = {
-                            gameViewModel.addNewColor()
+                        activeButtonIndex = activeButtonIndex,
+                        onColoredButtonClick = { btn ->
+                            gameViewModel.userClick(btn)
                         },
                         onStartButtonClick = {
                             gameViewModel.startNewGame()
@@ -102,7 +101,8 @@ fun GameScreen(
     modifier: Modifier = Modifier,
     gameState: GameState, // Actual state of the game
     text: String, // String with the sequence of the actual game
-    onColoredButtonClick: () -> Unit, // Function used to add the letter of the clicked button to the sequence
+    activeButtonIndex: Int, // Index of the button that should be illuminated
+    onColoredButtonClick: (Int) -> Unit, // Function used to handle the click on a coloured button
     onStartButtonClick: () -> Unit, // Function used to start a new game
     onPauseButtonClick: () -> Unit, // Function used to pause (or resume if already paused) the current game
     onEndgameButtonClick: () -> Unit // Function used to end the current game and return to the first activity
@@ -112,9 +112,6 @@ fun GameScreen(
 
     // Default string that appears in the text box before a game is started
     val newSequence = stringResource(R.string.new_sequence)
-
-    // Value used to count the actual clicks on buttons
-    var count by rememberSaveable { mutableIntStateOf(0) }
 
     // Layout of the game activity
     if (orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -130,6 +127,8 @@ fun GameScreen(
             ButtonGrid(
                 modifier = Modifier
                     .weight(4f),
+                gameState = gameState,
+                activeButtonIndex = activeButtonIndex,
                 onButtonClick = onColoredButtonClick
             )
 
@@ -182,6 +181,8 @@ fun GameScreen(
             ButtonGrid(
                 modifier = Modifier
                     .weight(1f),
+                gameState = gameState,
+                activeButtonIndex = activeButtonIndex,
                 onButtonClick = onColoredButtonClick
             )
 
@@ -228,15 +229,16 @@ fun GameScreen(
 }
 
 // Composable function that define the 3x2 matrix of colored buttons
-// In the parameters is passed the function called when a button is clicked
+// In the parameters is passed the state, the index of the button clicked and the function called when a button is clicked
 @Composable
 fun ButtonGrid(
     modifier: Modifier = Modifier,
-    onButtonClick: () -> Unit
+    gameState: GameState,
+    activeButtonIndex: Int,
+    onButtonClick: (Int) -> Unit
 ) {
-    // All button colors and their respective initial letters
+    // All the buttons colors
     val colors = listOf(Color.Red, Color.Magenta, Color.Green, Color.Yellow, Color.Blue, Color.Cyan)
-    val colorsLetters = listOf("R", "M", "G", "Y", "B", "C")
 
     // Column that contain the 3x2 matrix with the 6 buttons
     Column(
@@ -256,14 +258,31 @@ fun ButtonGrid(
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 repeat(2) {
+                    // Save the current index
                     val i = index
+
+                    // Illuminates the button if it is the one indicated
+                    val isButtonActive = (i == activeButtonIndex)
+
+                    // Check if it's the user turn
+                    val isUserTurn = (gameState == GameState.USER_TURN)
+
+                    // The button is darker (at 40%) if the button is inactive
+                    val buttonColors = if (isButtonActive) colors[i] else colors[i].copy(alpha = 0.4f)
+
                     Button(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
-                        onClick = onButtonClick,
+                        onClick = {
+                            onButtonClick(i)
+                        },
+                        enabled = isUserTurn,
                         shape = RoundedCornerShape(4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = colors[index])
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = buttonColors,
+                            disabledContainerColor = buttonColors
+                        )
                     ) {}
                     index++
                 }
@@ -348,7 +367,7 @@ fun PauseButton(
         modifier = modifier
             .padding(8.dp),
         onClick = onButtonClick,
-        enabled = gameState != GameState.STARTING,
+        enabled = (gameState == GameState.CPU_TURN) || (gameState == GameState.PAUSE),
         colors = ButtonDefaults.buttonColors(containerColor = OrangeA400)
     ) {
         Text(
@@ -391,6 +410,7 @@ fun GameScreenPreview() {
     GameScreen(
         gameState = GameState.STARTING,
         text = "R, G, B, Y, M, R, B, B",
+        activeButtonIndex = 2,
         onColoredButtonClick = {},
         onStartButtonClick = {},
         onPauseButtonClick = {},
