@@ -1,8 +1,9 @@
 package com.myapp.mysimon
 
-import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -17,14 +18,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,16 +44,30 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.myapp.mysimon.audio.GameAudioManager
 import com.myapp.mysimon.data.*
 import com.myapp.mysimon.ui.theme.*
 
 class MainActivity : ComponentActivity() {
 
+    // Instance of the view model, will be initialized later
+    private lateinit var gameViewModel: GameViewModel
+
+    // Instance of the audio manager, will be initialized later
+    private lateinit var gameAudioManager: GameAudioManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Enable edge-to-edge display on API level < 35
         enableEdgeToEdge()
+
+        // Get a new or existing ViewModel from the ViewModelProvider
+        gameViewModel = ViewModelProvider(this)[GameViewModel::class.java]
+        // Initialize the audio manager
+        gameAudioManager = GameAudioManager(this)
 
         // Initialize the database and the repository to access the database
         val db = AppDatabase.getDatabase(this)
@@ -55,182 +76,123 @@ class MainActivity : ComponentActivity() {
         // Set and display the UI content
         setContent {
             MySimonTheme {
+                val navController = rememberNavController()
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     floatingActionButton = {
                         // Insert the floating action button and by default put it in the bottom right corner
                         FabNewGame(onButtonClick = {
-                            // The button start the new game activity
-                            val intent = Intent(this, GameActivity::class.java)
-                            startActivity(intent)
+                            navController.navigate("game")
                         })
                     }
                 ) { innerPadding ->
                     // Collect the list of games from the database
                     val gamesList by repository.getAllGames().collectAsState(initial = emptyList())
-                    MainScreen(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
-                        buttonDetailScreen = { game ->
-                            // Pass the game to the detail activity by the id using the bundle of the intent
-                            val intent = Intent(this, DetailActivity::class.java).apply {
-                                putExtra("gameID", game.id)
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = "main",
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable("main") {
+                            MainScreen(
+                                buttonDetailScreen = { game ->
+                                    navController.navigate("detail")
+                                },
+                                buttonAccountScreen = {
+                                    navController.navigate("account")
+                                },
+                                games = gamesList.reversed() // The list is reversed to show the most recent games first
+                            )
+                        }
+                        composable("game") {
+                            // Collect the actual state of the game
+                            val gameState by gameViewModel.gameState.collectAsState()
+                            val text by gameViewModel.sequenceString.collectAsState()
+                            val activeButtonIndex by gameViewModel.activeButtonIndex.collectAsState()
+
+                            // Audio feedback for the user when he pressed a colored button
+                            LaunchedEffect(activeButtonIndex) {
+                                if (activeButtonIndex != -1) {
+                                    gameAudioManager.playSound(activeButtonIndex)
+                                }
                             }
-                            startActivity(intent)
-                        },
-                        games = gamesList.reversed() // The list is reversed to show the most recent games first
-                    )
+
+                            // Audio feedback when the game end
+                            LaunchedEffect(gameState) {
+                                if (gameState == GameState.GAME_OVER) {
+                                    gameAudioManager.playSound(99)
+                                }
+                            }
+
+                            // Handle the saving of the game when the user press the back button during a game
+                            BackHandler(
+                                enabled = (gameState != GameState.STARTING) && (gameState != GameState.GAME_OVER)
+                            ) {
+                                gameViewModel.endGame()
+                            }
+
+                            GameScreen(
+                                gameState = gameState,
+                                text = text,
+                                activeButtonIndex = activeButtonIndex,
+                                onColoredButtonClick = { btn ->
+                                    gameViewModel.userClick(btn)
+                                },
+                                onStartButtonClick = {
+                                    gameViewModel.startNewGame()
+                                },
+                                onPauseButtonClick = {
+                                    if (gameState == GameState.PAUSE) {
+                                        gameViewModel.resumeGame()
+                                    } else {
+                                        gameViewModel.pauseGame()
+                                    }
+                                },
+                                onEndgameButtonClick = {
+                                    gameViewModel.endGame()
+                                }
+                            )
+                        }
+                        composable("detail/{message}") { backStackEntry ->
+                            // Define the default value of the game we want to display
+                            var game by remember { mutableStateOf<Game?>(null) }
+
+                            // Start a coroutine to search the game in the database
+                            LaunchedEffect(id) {
+                                game = repository.selectGame(id)
+                            }
+
+                            val currentGame = game
+                            if (currentGame != null) {
+                                // When the game is ready, display the detail screen
+                                DetailScreen(
+                                    game = currentGame
+                                )
+                            } else {
+                                // While waiting, display a loading screen
+                                Text("Loading...")
+                            }
+                            /*DetailScreen(
+                                message = Uri.decode(backStackEntry.arguments?.getString("message").orEmpty())
+                            )*/
+                        }
+                        composable("account") {
+                            AccountScreen()
+                        }
+                    }
                 }
             }
         }
     }
-}
 
-// Function of the first screen of the app
-// Contain the sequences of the previous games and the best score of each sequence (consecutive button pressed correctly)
-// From this screen you can open the game activity or access the details of a sequence
-@Composable
-fun MainScreen(
-    modifier: Modifier = Modifier,
-    buttonDetailScreen : (game: Game) -> Unit, // Button function used pass to the detail activity of a specific game
-    games: List<Game> // List of the games
-) {
-    // Strings used on this activity
-    val title = stringResource(R.string.game_title)
-    val oldGames = stringResource(R.string.old_games)
-
-    // The layout of the endgame activity is contained in a column in portrait and landscape too
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // On top of the layout there is a text with the name of the game
-        // This text will not scroll up or down with the lazy column
-        // The color of the text is changed depending on the current theme of the device
-        Text(
-            text = title,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            color = if (isSystemInDarkTheme()) OrangeA400 else Color.Black,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
-        )
-
-        // Title of the section containing the old games
-        // This text will not scroll and his color change depending on the current theme of the device
-        Text(
-            text = oldGames,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            color = if (isSystemInDarkTheme()) OrangeA400 else Color.Black,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
-        )
-
-        // Under the text, covering the rest of the screen, there is the column containing the sequences of previous games
-        PreviousGames(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            buttonDetailScreen = buttonDetailScreen,
-            games = games
-        )
-    }
-}
-
-// Composable function that define the floating action button used to pass to the game activity
-@Composable
-fun FabNewGame(onButtonClick: () -> Unit) {
-    // String of the button
-    val newGame = stringResource(R.string.new_game)
-
-    // Implementation of the button
-    // This button is "extended", so it contains an icon and a text
-    ExtendedFloatingActionButton(
-        onClick = onButtonClick,
-        icon = { Icon(Icons.Filled.PlayArrow, newGame) },
-        text = { Text(text = newGame) },
-        containerColor = OrangeA400
-    )
-}
-
-// Composable function used to display the sequences of the previous games
-@Composable
-fun PreviousGames(
-    modifier: Modifier = Modifier,
-    buttonDetailScreen: (game: Game) -> Unit,
-    games: List<Game>
-) {
-    // The lazy column contains every sequence and it's scrollable
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Every game is inserted into a row, containing the number of clicks and the text of the sequence
-        items(games.size) { index ->
-            Row(
-                modifier = Modifier
-                    .clickable(onClick = { buttonDetailScreen(games[index]) })
-                    .fillMaxWidth()
-                    .background(color = LightBlueGrey50, shape = RoundedCornerShape(4.dp)),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Number of buttons pressed in that sequence
-                // The font make the number a little more bigger than the font of the sequence,
-                Text(
-                    text = games[index].counter.toString(),
-                    modifier = Modifier.weight(1f),
-                    color = Color.Black,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                // Sequence of that game divided in green part and red part
-                val errorSplitIndex = (3 * (games[index].error - 1)).coerceIn(0, games[index].sequence.length)
-                val resultString = buildAnnotatedString {
-                    append(games[index].sequence)
-                    // Add the green color to the correct part
-                    addStyle(
-                        style = SpanStyle(Color.Green),
-                        start = 0,
-                        end = errorSplitIndex
-                    )
-                    // Add the red color to the wrong part
-                    addStyle(
-                        style = SpanStyle(Color.Red),
-                        start = errorSplitIndex,
-                        end = games[index].sequence.length
-                    )
-                }
-
-                // Sequence of that game
-                // The sequence is cut to 2 lines to fit the screen
-                Text(
-                    text = resultString,
-                    modifier = Modifier.weight(9f),
-                    color = Color.Black,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 2
-                )
-            }
+    // The override of onDestroy() is important to avoid memory leaks by releasing the audio manager
+    override fun onDestroy() {
+        super.onDestroy()
+        if (this::gameAudioManager.isInitialized) {
+            gameAudioManager.release()
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    MainScreen(Modifier, {}, listOf(
-        Game(counter = 4, sequence = "A, B, C, D", error = 4),
-        Game(counter = 3, sequence = "X, Y, Z", error = 2)
-    ))
-}

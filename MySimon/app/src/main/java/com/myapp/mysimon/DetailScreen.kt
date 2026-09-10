@@ -65,9 +65,6 @@ class DetailActivity : ComponentActivity() {
                     if (currentGame != null) {
                         // When the game is ready, display the detail screen
                         DetailScreen(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(innerPadding),
                             game = currentGame
                         )
                     } else {
@@ -84,7 +81,6 @@ class DetailActivity : ComponentActivity() {
 // Contain the full sequence of the game and the maximum number of consecutive correct clicks
 @Composable
 fun DetailScreen(
-    modifier: Modifier = Modifier,
     game: Game // The game we want to display
 ) {
     // String used on this activity

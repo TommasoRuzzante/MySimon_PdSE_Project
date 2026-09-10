@@ -1,8 +1,9 @@
 <resources>
-    <string name="app_name">MySimon</string>
-    <string name="game_title" translatable="false">MySimon Game</string>
+    <string name="app_name" translatable="false">VersusSimon</string>
+    <string name="game_title" translatable="false">VersusSimon Game</string>
     <string name="old_games">Old games</string>
     <string name="new_game">Start Game</string>
+    <string name="my_account">My Account</string>
     <string name="pause">Pause</string>
     <string name="resume">Resume</string>
     <string name="endgame">End Game</string>

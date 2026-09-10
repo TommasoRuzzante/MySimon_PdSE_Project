@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MySimon</string>
     <string name="old_games">Vecchie Partite</string>
     <string name="new_game">Avvia Partita</string>
+    <string name="my_account">Il mio Account</string>
     <string name="pause">Pausa</string>
     <string name="resume">Riprendi</string>
     <string name="endgame">Fine Partita</string>

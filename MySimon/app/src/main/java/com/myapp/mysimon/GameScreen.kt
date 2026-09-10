@@ -95,9 +95,6 @@ class GameActivity : ComponentActivity() {
             MySimonTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     GameScreen(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
                         gameState = gameState,
                         text = text,
                         activeButtonIndex = activeButtonIndex,
@@ -138,7 +135,6 @@ class GameActivity : ComponentActivity() {
 // Contains colored buttons, current sequence and the menu buttons
 @Composable
 fun GameScreen(
-    modifier: Modifier = Modifier,
     gameState: GameState, // Actual state of the game
     text: String, // String with the sequence of the actual game
     activeButtonIndex: Int, // Index of the button that should be illuminated
@@ -154,7 +150,7 @@ fun GameScreen(
     if (orientation == Configuration.ORIENTATION_PORTRAIT) {
         // Layout for the portrait mode
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .padding(8.dp)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -210,7 +206,7 @@ fun GameScreen(
     } else {
         // Layout for the landscape mode
         Row(
-            modifier = modifier
+            modifier = Modifier
                 .padding(8.dp)
                 .fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
