@@ -1,4 +1,4 @@
-package com.myapp.mysimon
+package com.myapp.mysimon.ui.screens.game
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

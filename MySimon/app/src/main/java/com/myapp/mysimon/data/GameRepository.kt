@@ -19,4 +19,14 @@ class GameRepository(private val gameDao: GameDao) {
     suspend fun selectGame(id: Int) : Game {
         return gameDao.selectById(id)
     }
+
+    // Use the DAO to get the best score from the database
+    suspend fun getBestScore() : Int {
+        return gameDao.getBestScore()
+    }
+
+    // Use the DAO to get the number of games played from the database
+    suspend fun getGamesPlayed() : Int {
+        return gameDao.getGamesPlayed()
+    }
 }

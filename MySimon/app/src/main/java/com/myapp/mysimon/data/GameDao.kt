@@ -16,4 +16,10 @@ interface GameDao {
 
     @Query("SELECT * FROM game WHERE id = :id")
     suspend fun selectById(id: Int) : Game
+
+    @Query("SELECT MAX(counter) FROM game")
+    suspend fun getBestScore() : Int
+
+    @Query("SELECT COUNT(*) FROM game")
+    suspend fun getGamesPlayed() : Int
 }

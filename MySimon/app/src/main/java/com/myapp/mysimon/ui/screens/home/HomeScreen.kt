@@ -1,4 +1,4 @@
-package com.myapp.mysimon
+package com.myapp.mysimon.ui.screens.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -31,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.myapp.mysimon.R
 import com.myapp.mysimon.data.Game
 import com.myapp.mysimon.ui.theme.LightBlueGrey50
 import com.myapp.mysimon.ui.theme.OrangeA400
@@ -39,8 +38,8 @@ import com.myapp.mysimon.ui.theme.OrangeA400
 // Contain the sequences of the previous games and the best score of each sequence (consecutive button pressed correctly)
 // From this screen you can open the game screen or access the details of a sequence
 @Composable
-fun MainScreen(
-    buttonDetailScreen : (game: Game) -> Unit, // Button function used pass to the detail screen of a specific game
+fun HomeScreen(
+    buttonDetailScreen : (gameId: Int) -> Unit, // Button function used pass to the detail screen of a specific game
     buttonAccountScreen : () -> Unit, // Button function used pass to the account screen
     games: List<Game> // List of the games
 ) {
@@ -107,22 +106,6 @@ fun MainScreen(
     }
 }
 
-// Composable function that define the floating action button used to pass to the game screen
-@Composable
-fun FabNewGame(onButtonClick: () -> Unit) {
-    // String of the button
-    val newGame = stringResource(R.string.new_game)
-
-    // Implementation of the button
-    // This button is "extended", so it contains an icon and a text
-    ExtendedFloatingActionButton(
-        onClick = onButtonClick,
-        icon = { Icon(Icons.Filled.PlayArrow, newGame) },
-        text = { Text(text = newGame) },
-        containerColor = OrangeA400
-    )
-}
-
 // Composable function to open the account detail screen
 @Composable
 fun AccountButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
@@ -148,7 +131,7 @@ fun AccountButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
 @Composable
 fun PreviousGames(
     modifier: Modifier = Modifier,
-    buttonDetailScreen: (game: Game) -> Unit,
+    buttonDetailScreen: (gameId: Int) -> Unit,
     games: List<Game>
 ) {
     // The lazy column contains every sequence and it's scrollable
@@ -161,7 +144,7 @@ fun PreviousGames(
         items(games.size) { index ->
             Row(
                 modifier = Modifier
-                    .clickable(onClick = { buttonDetailScreen(games[index]) })
+                    .clickable(onClick = { buttonDetailScreen(games[index].id) })
                     .fillMaxWidth()
                     .background(color = LightBlueGrey50, shape = RoundedCornerShape(4.dp)),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -213,7 +196,7 @@ fun PreviousGames(
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    MainScreen({}, {}, listOf(
+    HomeScreen({}, {}, listOf(
         Game(counter = 4, sequence = "A, B, C, D", error = 4),
         Game(counter = 3, sequence = "X, Y, Z", error = 2)
     ))

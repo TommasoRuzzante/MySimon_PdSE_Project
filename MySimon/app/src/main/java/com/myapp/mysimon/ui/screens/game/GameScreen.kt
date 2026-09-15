@@ -1,11 +1,6 @@
-package com.myapp.mysimon
+package com.myapp.mysimon.ui.screens.game
 
 import android.content.res.Configuration
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,12 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -39,97 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelProvider
-import com.myapp.mysimon.audio.GameAudioManager
+import com.myapp.mysimon.R
 import com.myapp.mysimon.ui.theme.*
-
-class GameActivity : ComponentActivity() {
-
-    // Instance of the view model, will be initialized later
-    private lateinit var gameViewModel: GameViewModel
-
-    // Instance of the audio manager, will be initialized later
-    private lateinit var gameAudioManager: GameAudioManager
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // Enable edge-to-edge display on API level < 35
-        enableEdgeToEdge()
-
-        // Get a new or existing ViewModel from the ViewModelProvider
-        gameViewModel = ViewModelProvider(this)[GameViewModel::class.java]
-
-        // Initialize the audio manager
-        gameAudioManager = GameAudioManager(this)
-
-        // Set and display the UI content
-        setContent {
-            // Collect the actual state of the game
-            val gameState by gameViewModel.gameState.collectAsState()
-            val text by gameViewModel.sequenceString.collectAsState()
-            val activeButtonIndex by gameViewModel.activeButtonIndex.collectAsState()
-
-            // Audio feedback for the user when he pressed a colored button
-            LaunchedEffect(activeButtonIndex) {
-                if (activeButtonIndex != -1) {
-                    gameAudioManager.playSound(activeButtonIndex)
-                }
-            }
-
-            // Audio feedback when the game end
-            LaunchedEffect(gameState) {
-                if (gameState == GameState.GAME_OVER) {
-                    gameAudioManager.playSound(99)
-                }
-            }
-
-            // Handle the saving of the game when the user press the back button during a game
-            BackHandler(
-                enabled = (gameState != GameState.STARTING) && (gameState != GameState.GAME_OVER)
-            ) {
-                gameViewModel.endGame()
-                this.finish()
-            }
-
-            MySimonTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    GameScreen(
-                        gameState = gameState,
-                        text = text,
-                        activeButtonIndex = activeButtonIndex,
-                        onColoredButtonClick = { btn ->
-                            gameViewModel.userClick(btn)
-                        },
-                        onStartButtonClick = {
-                            gameViewModel.startNewGame()
-                        },
-                        onPauseButtonClick = {
-                            if (gameState == GameState.PAUSE) {
-                                gameViewModel.resumeGame()
-                            } else {
-                                gameViewModel.pauseGame()
-                            }
-                        },
-                        onEndgameButtonClick = {
-                            gameViewModel.endGame()
-                            this.finish()
-                        }
-                    )
-                }
-            }
-        }
-    }
-
-    // The override of onDestroy() is important to avoid memory leaks by releasing the audio manager
-    override fun onDestroy() {
-        super.onDestroy()
-
-        if (this::gameAudioManager.isInitialized) {
-            gameAudioManager.release()
-        }
-    }
-}
 
 // Function of the game screen of the app
 // Contains colored buttons, current sequence and the menu buttons
@@ -141,12 +43,12 @@ fun GameScreen(
     onColoredButtonClick: (Int) -> Unit, // Function used to handle the click on a coloured button
     onStartButtonClick: () -> Unit, // Function used to start a new game
     onPauseButtonClick: () -> Unit, // Function used to pause (or resume if already paused) the current game
-    onEndgameButtonClick: () -> Unit // Function used to end the current game and return to the first activity
+    onEndgameButtonClick: () -> Unit // Function used to end the current game and return to the first screen
 ) {
     // Orientation of the device
     val orientation = LocalConfiguration.current.orientation
 
-    // Layout of the game activity
+    // Layout of the game screen
     if (orientation == Configuration.ORIENTATION_PORTRAIT) {
         // Layout for the portrait mode
         Column(
