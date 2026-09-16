@@ -34,28 +34,25 @@ import com.myapp.mysimon.data.Game
 import com.myapp.mysimon.ui.theme.LightBlueGrey50
 import com.myapp.mysimon.ui.theme.OrangeA400
 
-// Function of the first screen of the app
-// Contain the sequences of the previous games and the best score of each sequence (consecutive button pressed correctly)
-// From this screen you can open the game screen or access the details of a sequence
+/**
+ * The entry screen of the application.
+ * Displays a list of previously played games and provides navigation to Account and Detail screens.
+ */
 @Composable
 fun HomeScreen(
-    buttonDetailScreen : (gameId: Int) -> Unit, // Button function used pass to the detail screen of a specific game
-    buttonAccountScreen : () -> Unit, // Button function used pass to the account screen
-    games: List<Game> // List of the games
+    buttonDetailScreen : (gameId: Int) -> Unit, // Callback to navigate to game details
+    buttonAccountScreen : () -> Unit, // Callback to navigate to the account screen
+    games: List<Game> // List of game history fetched from the database
 ) {
-    // Strings used on this screen
     val title = stringResource(R.string.game_title)
     val oldGames = stringResource(R.string.old_games)
 
-    // The layout of the main screen is contained in a column in portrait and landscape too
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // On top of the layout there is a text with the name of the game
-        // This text will not scroll up or down with the lazy column
-        // The color of the text is changed depending on the current theme of the device
+        // App Title
         Text(
             text = title,
             modifier = Modifier
@@ -67,23 +64,15 @@ fun HomeScreen(
             textAlign = TextAlign.Center
         )
 
-        // On the right there is the button to open the account screen
-        // It's in a row to lock it in the right corner of the screen
-        Row(
+        // Account navigation section
+        AccountRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-            AccountButton(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
             onButtonClick = buttonAccountScreen
-        )}
+        )
 
-        // Title of the section containing the old games
-        // This text will not scroll and his color change depending on the current theme of the device
+        // History Section Header
         Text(
             text = oldGames,
             modifier = Modifier
@@ -95,7 +84,7 @@ fun HomeScreen(
             textAlign = TextAlign.Center
         )
 
-        // Under the text, covering the rest of the screen, there is the column containing the sequences of previous games
+        // List of previous game attempts
         PreviousGames(
             modifier = Modifier
                 .fillMaxWidth()
@@ -106,41 +95,60 @@ fun HomeScreen(
     }
 }
 
-// Composable function to open the account detail screen
+/**
+ * Composable that represents the user account shortcut.
+ */
 @Composable
-fun AccountButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
-    // String of the button
+fun AccountRow(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
     val myAccount = stringResource(R.string.my_account)
 
-    //
-    IconButton(
+    Row(
         modifier = modifier
-            .fillMaxSize()
-            .padding(4.dp),
-        onClick = onButtonClick
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = Icons.Filled.AccountCircle,
-            contentDescription = myAccount,
-            tint = OrangeA400
+        Text(
+            modifier = Modifier
+                .padding(4.dp)
+                .weight(2f),
+            text = "Hi $myAccount!",
+            color = if (isSystemInDarkTheme()) OrangeA400 else Color.Black,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium
         )
+
+        IconButton(
+            modifier = Modifier
+                .padding(4.dp)
+                .weight(1f),
+            onClick = onButtonClick
+        ) {
+            Icon(
+                imageVector = Icons.Filled.AccountCircle,
+                contentDescription = myAccount,
+                modifier = Modifier.fillMaxSize(),
+                tint = OrangeA400
+            )
+        }
     }
 }
 
-// Composable function used to display the sequences of the previous games
+/**
+ * Displays a scrollable list of historical game results.
+ */
 @Composable
 fun PreviousGames(
     modifier: Modifier = Modifier,
     buttonDetailScreen: (gameId: Int) -> Unit,
     games: List<Game>
 ) {
-    // The lazy column contains every sequence and it's scrollable
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Every game is inserted into a row, containing the number of clicks and the text of the sequence
         items(games.size) { index ->
             Row(
                 modifier = Modifier
@@ -149,8 +157,7 @@ fun PreviousGames(
                     .background(color = LightBlueGrey50, shape = RoundedCornerShape(4.dp)),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Number of buttons pressed in that sequence
-                // The font make the number a little more bigger than the font of the sequence,
+                // Score achieved in this game
                 Text(
                     text = games[index].counter.toString(),
                     modifier = Modifier.weight(1f),
@@ -159,17 +166,15 @@ fun PreviousGames(
                     fontWeight = FontWeight.Bold
                 )
 
-                // Sequence of that game divided in green part and red part
+                // Sequence visualization: Green for correct steps, Red for the mistake
                 val errorSplitIndex = (3 * (games[index].error - 1)).coerceIn(0, games[index].sequence.length)
                 val resultString = buildAnnotatedString {
                     append(games[index].sequence)
-                    // Add the green color to the correct part
                     addStyle(
                         style = SpanStyle(Color.Green),
                         start = 0,
                         end = errorSplitIndex
                     )
-                    // Add the red color to the wrong part
                     addStyle(
                         style = SpanStyle(Color.Red),
                         start = errorSplitIndex,
@@ -177,8 +182,6 @@ fun PreviousGames(
                     )
                 }
 
-                // Sequence of that game
-                // The sequence is cut to 2 lines to fit the screen
                 Text(
                     text = resultString,
                     modifier = Modifier.weight(9f),

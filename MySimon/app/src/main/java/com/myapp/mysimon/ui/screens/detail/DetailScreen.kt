@@ -25,16 +25,16 @@ import com.myapp.mysimon.R
 import com.myapp.mysimon.data.*
 import com.myapp.mysimon.ui.theme.*
 
-// Function of the detail screen of the app
-// Contain the full sequence of the game and the maximum number of consecutive correct clicks
+/**
+ * Screen displaying the full details of a past game session.
+ * Shows the final score and the complete sequence, highlighting the mistake.
+ */
 @Composable
 fun DetailScreen(
-    game: Game // The game we want to display
+    game: Game // The specific game data to display
 ) {
-    // String used on this screen
     val details = stringResource(R.string.game_details)
 
-    // The layout of the endgame screen is contained in a column in portrait and landscape too
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -42,7 +42,7 @@ fun DetailScreen(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Title of the page
+        // Section Title
         Text(
             text = details,
             modifier = Modifier
@@ -54,7 +54,7 @@ fun DetailScreen(
             textAlign = TextAlign.Center
         )
 
-        // Text with the score of this game
+        // Final score (consecutive correct buttons)
         Text(
             text = game.counter.toString(),
             modifier = Modifier
@@ -65,7 +65,7 @@ fun DetailScreen(
             textAlign = TextAlign.Center
         )
 
-        // Display the sequence of this game
+        // Detailed view of the sequence with color-coded results
         DetailedSequence(
             modifier = Modifier
                 .fillMaxWidth()
@@ -76,24 +76,27 @@ fun DetailScreen(
     }
 }
 
-// Composable function that define the text view of the screen
+/**
+ * Composable that renders the game sequence.
+ * Colors correct steps in Green and the final mistake in Red.
+ */
 @Composable
 fun DetailedSequence(
     modifier: Modifier = Modifier,
     sequence: String,
     error: Int
 ) {
-    // Sequence of this game divided in green part and red part
+    // Logic to calculate where the user failed to apply correct colors
     val errorSplitIndex = (3 * (error - 1)).coerceIn(0, sequence.length)
     val resultString = buildAnnotatedString {
         append(sequence)
-        // Add the green color to the correct part
+        // Correct part in Green
         addStyle(
             style = SpanStyle(Color.Green),
             start = 0,
             end = errorSplitIndex
         )
-        // Add the red color to the wrong part
+        // Mistake part in Red
         addStyle(
             style = SpanStyle(Color.Red),
             start = errorSplitIndex,
@@ -101,10 +104,9 @@ fun DetailedSequence(
         )
     }
 
-    // Value used to make the sequence scrollable and not expandable
+    // Scroll state for long sequences
     val scrollState = rememberScrollState()
 
-    // Text with the sequence of this game
     Text(
         text = resultString,
         modifier = modifier

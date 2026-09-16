@@ -10,18 +10,21 @@ import androidx.compose.ui.res.stringResource
 import com.myapp.mysimon.R
 import com.myapp.mysimon.ui.theme.OrangeA400
 
-// Composable function that define the floating action button used to pass to the game screen
+/**
+ * A custom Floating Action Button (FAB) used to navigate the user to the game screen.
+ * It is an "Extended" FAB, meaning it includes both a descriptive icon and text.
+ */
 @Composable
-fun FabNewGame(onButtonClick: () -> Unit) {
-    // String of the button
+fun FabNewGame(
+    onButtonClick: () -> Unit // Callback to execute when the FAB is tapped
+) {
+    // Localization support for the button label
     val newGame = stringResource(R.string.new_game)
 
-    // Implementation of the button
-    // This button is "extended", so it contains an icon and a text
     ExtendedFloatingActionButton(
         onClick = onButtonClick,
-        icon = { Icon(Icons.Filled.PlayArrow, newGame) },
+        icon = { Icon(Icons.Filled.PlayArrow, contentDescription = newGame) },
         text = { Text(text = newGame) },
-        containerColor = OrangeA400
+        containerColor = OrangeA400 // Thematic primary color for actions
     )
 }
