@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MySimon</string>
+    <string name="greetings">Ciao</string>
     <string name="old_games">Vecchie Partite</string>
     <string name="new_game">Avvia Partita</string>
+    <string name="my_account">Il mio Account</string>
+    <string name="best_score">Miglior Punteggio</string>
     <string name="pause">Pausa</string>
     <string name="resume">Riprendi</string>
     <string name="endgame">Fine Partita</string>
     <string name="new_sequence">Avvia Nuova Partita</string>
     <string name="error">La partita è terminata</string>
     <string name="game_details">Dettagli della Partita</string>
+    <string name="game_statistics">Statistiche di Gioco</string>
+    <string name="user_tag">TAG Utente</string>
+    <string name="games_played">Partite Giocate</string>
+    <string name="name">Nome</string>
+    <string name="save_name">Salva Nome</string>
+    <string name="edit_name">Cambia Nome</string>
 </resources>

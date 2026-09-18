@@ -4,21 +4,24 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-// Entity class that represent a game in the database
+/**
+ * Entity class representing a single game session in the Room database.
+ * Stores the final score, the sequence generated, and where the user made a mistake.
+ */
 @Entity
 data class Game(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
 
-    // Longest sequence of button pressed by the user
+    // The final score, representing the number of correct steps in the sequence
     @ColumnInfo(name = "counter")
     val counter: Int,
 
-    // String of the sequence of the game
+    // A comma-separated string representation of the color sequence
     @ColumnInfo(name = "sequence")
     val sequence: String,
 
-    // The index of the wrong button pressed
+    // The index within the sequence where the user clicked the wrong color
     @ColumnInfo(name = "error_index")
     val error: Int
 )

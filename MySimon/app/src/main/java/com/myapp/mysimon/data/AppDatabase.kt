@@ -5,29 +5,40 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.Room
 
-// Database class for the application
-@Database(entities = arrayOf(Game::class), version = 1)
+/**
+ * Main database class for the application using Room.
+ * It serves as the primary access point for the persisted data.
+ * The database manages two entities: Game (history) and User (profile).
+ */
+@Database(entities = [Game::class, User::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
+    
+    // Abstract methods to obtain the Data Access Objects (DAOs)
     abstract fun gameDao(): GameDao
+    abstract fun userDao(): UserDao
 
-    // Singleton Pattern: Create a single instance of the database accessible by the whole application
     companion object {
-        // Volatile annotation ensures that the value of INSTANCE is always up-to-date and the same to all execution threads
+        // Singleton instance to prevent multiple instances of the database opening at the same time
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // Function to get the database instance
+        /**
+         * Gets the singleton instance of the database.
+         * If it doesn't exist, it creates it in a thread-safe manner.
+         */
         fun getDatabase(context: Context): AppDatabase {
-            // If the INSTANCE is not null, then return it, otherwise create a new database instance
-            // Creating the database with synchronized ensures only one thread of execution at a time can enter this block of code
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                         context.applicationContext,
                         AppDatabase::class.java,
                         "game-db"
-                    ).build()
-                INSTANCE = instance // Save the new instance in the INSTANCE variable
-                instance // The result of the synchronized block
+                    )
+                    // Allows Room to destructively recreate database tables if migrations are missing.
+                    // version 2 adds the User table.
+                    .fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
             }
         }
     }
