@@ -35,7 +35,7 @@ class DetailViewModel(
     init {
         // Initialize the database and repository
         val db = AppDatabase.getDatabase(application)
-        repository = GameRepository(db.gameDao())
+        repository = GameRepository(db.gameDao(), db.userDao())
         
         // Load game details immediately upon initialization
         loadGame(detailRoute.id)

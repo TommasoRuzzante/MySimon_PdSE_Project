@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.myapp.mysimon.R
 import com.myapp.mysimon.data.Game
+import com.myapp.mysimon.data.User
 import com.myapp.mysimon.ui.theme.LightBlueGrey50
 import com.myapp.mysimon.ui.theme.OrangeA400
 
@@ -40,6 +41,7 @@ import com.myapp.mysimon.ui.theme.OrangeA400
  */
 @Composable
 fun HomeScreen(
+    user: User?, // User profile to display personalized greetings
     buttonDetailScreen : (gameId: Int) -> Unit, // Callback to navigate to game details
     buttonAccountScreen : () -> Unit, // Callback to navigate to the account screen
     games: List<Game> // List of game history fetched from the database
@@ -66,6 +68,7 @@ fun HomeScreen(
 
         // Account navigation section
         AccountRow(
+            user = user,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
@@ -99,8 +102,11 @@ fun HomeScreen(
  * Composable that represents the user account shortcut.
  */
 @Composable
-fun AccountRow(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
+fun AccountRow(user: User?, modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
+    val hello = stringResource(R.string.greetings)
     val myAccount = stringResource(R.string.my_account)
+    // Display the user's name if set, otherwise fallback to "My Account"
+    val displayName = if (!user?.name.isNullOrBlank()) user?.name else myAccount
 
     Row(
         modifier = modifier
@@ -113,7 +119,7 @@ fun AccountRow(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
             modifier = Modifier
                 .padding(4.dp)
                 .weight(2f),
-            text = "Hi $myAccount!",
+            text = "$hello $displayName!",
             color = if (isSystemInDarkTheme()) OrangeA400 else Color.Black,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium
@@ -199,7 +205,7 @@ fun PreviousGames(
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    HomeScreen({}, {}, listOf(
+    HomeScreen(User(name = "Test"), {}, {}, listOf(
         Game(counter = 4, sequence = "A, B, C, D", error = 4),
         Game(counter = 3, sequence = "X, Y, Z", error = 2)
     ))

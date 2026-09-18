@@ -42,8 +42,10 @@ fun MySimonNavHost(
         composable<HomeRoute> {
             val homeViewModel: HomeViewModel = viewModel()
             val gamesList by homeViewModel.games.collectAsState()
+            val user by homeViewModel.user.collectAsState()
 
             HomeScreen(
+                user = user,
                 buttonDetailScreen = { gameId ->
                     navController.navigate(DetailRoute(gameId))
                 },
@@ -130,10 +132,15 @@ fun MySimonNavHost(
             val accountViewModel: AccountViewModel = viewModel()
             val bestScore by accountViewModel.bestScore.collectAsState()
             val gamesPlayed by accountViewModel.gamesPlayed.collectAsState()
+            val user by accountViewModel.user.collectAsState()
 
             AccountScreen(
+                user = user,
                 bestScore = bestScore,
-                gamesPlayed = gamesPlayed
+                gamesPlayed = gamesPlayed,
+                onSaveName = { newName ->
+                    accountViewModel.updateName(newName)
+                }
             )
         }
     }

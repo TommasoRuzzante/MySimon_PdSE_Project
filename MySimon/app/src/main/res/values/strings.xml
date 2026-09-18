@@ -1,9 +1,17 @@
 <resources>
     <string name="app_name" translatable="false">VersusSimon</string>
     <string name="game_title" translatable="false">VersusSimon Game</string>
+    <string name="greetings">Hello</string>
     <string name="old_games">Old games</string>
     <string name="new_game">Start Game</string>
     <string name="my_account">My Account</string>
+    <string name="name">Name</string>
+    <string name="save_name">Save Name</string>
+    <string name="edit_name">Edit Name</string>
+    <string name="game_statistics">Game Statistics</string>
+    <string name="user_tag">User TAG</string>
+    <string name="games_played">Games Played</string>
+    <string name="best_score">Best Score</string>
     <string name="pause">Pause</string>
     <string name="resume">Resume</string>
     <string name="endgame">End Game</string>

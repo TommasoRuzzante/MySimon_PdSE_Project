@@ -52,7 +52,7 @@ class GameViewModel(
     init {
         // Initialize the database and repository
         val db = AppDatabase.getDatabase(application)
-        repository = GameRepository(db.gameDao())
+        repository = GameRepository(db.gameDao(), db.userDao())
 
         // Restore game state from SavedStateHandle after process death
         val savedSequence = savedStateHandle.get<ArrayList<Int>>("sequence")
