@@ -106,7 +106,7 @@ fun AccountRow(user: User?, modifier: Modifier = Modifier, onButtonClick: () -> 
     val hello = stringResource(R.string.greetings)
     val myAccount = stringResource(R.string.my_account)
     // Display the user's name if set, otherwise fallback to "My Account"
-    val displayName = if (!user?.name.isNullOrBlank()) user?.name else myAccount
+    val displayName = if (!user?.name.isNullOrBlank()) user.name else myAccount
 
     Row(
         modifier = modifier
